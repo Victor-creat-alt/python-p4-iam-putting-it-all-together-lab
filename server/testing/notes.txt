@@ -16,8 +16,6 @@ class User(db.Model, SerializerMixin):
     # Recipes association (One-to-Many relationship)
     recipes = db.relationship('Recipe', back_populates='user', cascade="all, delete-orphan")
 
-    serialize_rules = ('-recipes.user',)  # Prevent circular serialization
-
     # Setter for password (use this to securely set a password hash)
     def set_password(self, password):
         if not password:
@@ -31,7 +29,7 @@ class User(db.Model, SerializerMixin):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
 
     # Protect Password Hash Attribute
-    @hybrid_property
+    @property
     def password_hash(self):
         raise AttributeError("Password hash is protected.")
 
@@ -53,7 +51,7 @@ class User(db.Model, SerializerMixin):
 class Recipe(db.Model, SerializerMixin):
     __tablename__ = 'recipes'
 
-    id = db.Column(db.Integer, primary_key=True)  # Add this line
+    id = db.Column(db.Integer, primary_key=True) # Add this line
     title = db.Column(db.String, nullable=False)
     instructions = db.Column(db.String, nullable=False)
     minutes_to_complete = db.Column(db.Integer, nullable=False, default=0)
@@ -75,8 +73,6 @@ class Recipe(db.Model, SerializerMixin):
     # User Association
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user = db.relationship('User', back_populates='recipes')
-
-    serialize_rules = ('-user.recipes',) # Prevent circular serialization
 
     # Validates user_id presence
     @validates('user_id')

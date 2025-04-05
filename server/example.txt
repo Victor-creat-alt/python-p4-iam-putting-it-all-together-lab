@@ -18,22 +18,18 @@ class Signup(Resource):
         if not username or not password:
             return {'error': '422: Unprocessable Entry'}, 422
 
-        try:
-            new_user = User(
-                username=username,
-                bio=bio,
-                image_url=image_url,
-            )
-            new_user.set_password(password)  # set password here
+        new_user = User(
+            username=username,
+            bio=bio,
+            image_url=image_url,
+        )
+        new_user.set_password(password) # set password here
 
-            db.session.add(new_user)
-            db.session.commit()
+        db.session.add(new_user)
+        db.session.commit()
 
-            return new_user.to_dict(), 201
-        except IntegrityError:
-            db.session.rollback()
-            return {'error': 'Username already exists'}, 400
-
+        return new_user.to_dict(), 201
+    
 class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
@@ -99,27 +95,22 @@ class RecipeIndex(Resource):
         if not title or not instructions or not minutes_to_complete:
             return {'error': '422: Unprocessable Entry'}, 422
 
-        try:
-            new_recipe = Recipe(
-                title=title,
-                instructions=instructions,
-                minutes_to_complete=minutes_to_complete,
-                user_id=user_id
-            )
-            db.session.add(new_recipe)
-            db.session.commit()
+        new_recipe = Recipe(
+            title=title,
+            instructions=instructions,
+            minutes_to_complete=minutes_to_complete,
+            user_id=user_id
+        )
+        db.session.add(new_recipe)
+        db.session.commit()
 
-            return new_recipe.to_dict(), 201
-        except ValueError as e:
-            db.session.rollback()
-            return {'error': str(e)}, 422
+        return new_recipe.to_dict(), 201
 
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(RecipeIndex, '/recipes', endpoint='recipes')
-
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
